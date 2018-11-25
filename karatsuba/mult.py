@@ -1,140 +1,84 @@
 import pytest
 import math
 
+# this function returns the length of a number. The input can be string or int
 def digit_n(x):
-	if x == 0 | long(x) == 0:
-		return 1;
-
-	if(isinstance(x, basestring)):
-		return len(x);
-
+	# converts input to string
 	x = str(x)
+	# checks if the input is zero and returns a length of 1
+	if int(x) == 0:
+		return 1;
+	
 	return len(x);
 
+# this function breaks a number into upper and lower pieces
 def pieces(x):
-	if digit_n(x) == 1:
+	digits = digit_n(x)
+
+	# if input is of length 1, returns two pieces '0' and 'number'
+	if digits == 1:
 		return '0', str(x);
 
-	digits = digit_n(x)
-	xstr = str(x)
-	large = xstr[:digits/2]
-	small = xstr[digits/2:]
-
-	# print(digit_n(small) % 2 != 0)
-	# print(digit_n(small) != 1)
-
-	if digit_n(small) != digit_n(large):
-		# print("Im here")
-		large = '0' + xstr[:digits/2]
-		# print(large)
-
-	# holder = x
-	# small = 0
-	# large = 0
-
-	# large = x / pow(10, digits / 2)
-
-	# count = 0
-	# while count < digits / 2:
-	# 	small = small + (holder % 10) * pow(10, count)
-	# 	holder /= 10
-	# 	count += 1
+	# breaks number into upper and lower pieces
+	large = x[:digits/2]
+	small = x[digits/2:]
 
 	return large, small;
 
 def karatsuba(xin, yin):
 	x = str(xin)
 	y = str(yin)
-	digits_x = digit_n(x)
-	if (digit_n(x) % 2 != 0):
-		digits_x += 1
 
-	digits_y = digit_n(y)
-	if (digit_n(y) % 2 != 0):
-		digits_y += 1
+	# the base case. If inputs are single digits, multipl them
+	if digit_n(xin) == 1 and digit_n(yin) == 1:
+		return int(xin) * int(yin);
+	else: 
+		digits_x = digit_n(x)
+		digits_y = digit_n(y)
+		
+		# increments x and y when they are of odd number lengths
+		if (digit_n(x) % 2 != 0):
+			digits_x += 1
+		elif (digit_n(y) % 2 != 0):
+			digits_y += 1
 
-	diff = digits_x - digits_y
-	print("diff ", diff)
+		# pads x or y appropriately when they are of unequal lengths
+		diff = digits_x - digits_y
+		if (diff > 0):
+			y = '0' * abs(diff) + y
+		elif (diff < 0):
+			x = '0' * abs(diff) + x
 
-	if (diff > 0):
-		y = '0' * abs(diff) + y
-	elif (diff < 0):
-		x = '0' * abs(diff) + x
+		# breaks x and y into upper and lower pieces
+		xh, xl = pieces(x)
+		yh, yl = pieces(y)
 
-	xh, xl = pieces(x)
-	yh, yl = pieces(y)
-
-	print("x is ", x)
-	print("y is ", y)
-	print("x pieces ", xh, xl)
-	print("y pieces ", yh, yl)
-
-	if digit_n(xh) == 1 and digit_n(yh) == 1:
-		a = long(xh) * long(yh)
-		print("a in ", a)
-	else:
+		# performs the karatsuba multiplication
 		a = karatsuba(xh, yh)
-		print("a out ", a)
-
-	if digit_n(xl) == 1 and digit_n(yl) == 1:
-		d = long(xl) * long(yl)
-		print("d in ", d)
-	else:
 		d = karatsuba(xl, yl)
-		print("a out ", d)
+		e = karatsuba((int(xh) + int(xl)), (int(yh) + int(yl))) - a - d
 
-	if digit_n(long(xh) + long(xl)) == 1 and digit_n(long(yh) + long(yl)) == 1:
-		e = (long(xh) + long(xl)) * (long(yh) + long(yl)) - long(a) - long(d)
-		print("e in ", e)
-	else:
-		e = karatsuba((long(xh) + long(xl)), (long(yh) + long(yl))) - a - d
-		print("e out ", e)
+		# chooses the final digits number to be the higher of digits_x and digits_y
+		digits = max(digits_x, digits_y)
 
-	digits = digits_x/2 if digits_x >= digits_y else digits_y/2
-
-	print(long(a * (10**(2*digits)) + e * (10**digits) + d))
-
-	return long(a * (10**(2*digits)) + e * (10**digits) + d);
-
-# def setup_function(function):
-#     print("setting up %s" % function)
+		return int(a * (10**(digits)) + e * (10**(digits/2)) + d);
 
 def test_answer():
-    assert karatsuba(1,1) == 1
-    assert karatsuba(1,2) == 2
-    assert karatsuba(1,3) == 3
-    assert karatsuba(1,4) == 4
-    assert karatsuba(1,5) == 5
-    assert karatsuba(1,6) == 6
-    assert karatsuba(1,7) == 7
-    assert karatsuba(1,8) == 8
-    assert karatsuba(1,9) == 9
+	# test the output when the input size changes
+	# this also tests odd multiplication and odd-length multiplication
+	assert karatsuba(2,9) == 2*9
+	assert karatsuba(23,93) == 23*93
+	assert karatsuba(234,934) == 234*934
+	assert karatsuba(23455,93455) == 23455*93455
+	assert karatsuba(2345566,9345566) == 2345566*9345566
+	assert karatsuba(234556677,934556677) == 234556677*934556677
+	assert karatsuba(23455667788,93455667788) == 23455667788*93455667788
+	assert karatsuba(2345566778899,9345566778899) == 2345566778899*9345566778899
 
-    assert karatsuba(2,2) == 4
-    assert karatsuba(2,3) == 6
-    assert karatsuba(2,4) == 8
-    assert karatsuba(2,5) == 10
-    assert karatsuba(2,6) == 12
-    assert karatsuba(2,7) == 14
-    assert karatsuba(2,8) == 16
-    assert karatsuba(2,9) == 18
+	# test unequal length multiplication
+	assert karatsuba(12,1234) == 12*1234
+	assert karatsuba(123,1234) == 123*1234
 
-    assert karatsuba(3,5) == 15
+	# test 64-bit multiplication
+	assert karatsuba(3141592653589793238462643383279502884197169399375105820974944592,2718281828459045235360287471352662497757247093699959574966967627) == 3141592653589793238462643383279502884197169399375105820974944592*2718281828459045235360287471352662497757247093699959574966967627
 
-    assert karatsuba(9,9) == 81
-
-    assert karatsuba(19,19) == 19*19
-
-    assert karatsuba(15,17) == 15*17
-
-    assert karatsuba(151,175) == 151*175
-
-    assert karatsuba(795,627) == 498465
-    assert karatsuba(195,627) == 122265
-
-    assert karatsuba(3141592653589793238462643383279502884197169399375105820974944592,2718281828459045235360287471352662497757247093699959574966967627) == 3141592653589793238462643383279502884197169399375105820974944592*2718281828459045235360287471352662497757247093699959574966967627
-    assert karatsuba(1149444592,1166967627) == 1149444592*1166967627
-    assert karatsuba(42, 100) == 100*42
-
-print(karatsuba(3141592653589793238462643383279502884197169399375105820974944592,2718281828459045235360287471352662497757247093699959574966967627))
-print(3141592653589793238462643383279502884197169399375105820974944592*2718281828459045235360287471352662497757247093699959574966967627)
