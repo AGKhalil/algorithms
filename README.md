@@ -8,3 +8,4 @@ as practice in going from psudocode into actual code as well as enhance my under
   
 ## List of Implemented Algorithms
 - [Karatsuba's algorithm](/karatsuba/karatsuba.py)
+- [Merge Sort algorithm](/merge_sort/merge_sort.py)
